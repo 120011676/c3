@@ -12,7 +12,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class DataCrawStats implements DataCraw {
-    private final String ua = "c3";
+    private final String ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36";
+    private final int sleep = 3000;
+    private final int timeout = 30000;
 
     @Override
     public List<C3Area> craw() {
@@ -25,8 +27,10 @@ public class DataCrawStats implements DataCraw {
 
     public List<C3Area> provincetr(String url) {
         try {
+            Thread.sleep(sleep);
             return Jsoup.connect(url)
                     .userAgent(ua)
+                    .timeout(timeout)
                     .get()
                     .select(".provincetr a")
                     .stream()
@@ -50,8 +54,10 @@ public class DataCrawStats implements DataCraw {
 
     public List<C3Area> citytr(String url) {
         try {
+            Thread.sleep(sleep);
             return Jsoup.connect(url)
                     .userAgent(ua)
+                    .timeout(timeout)
                     .get()
                     .select(".citytr")
                     .stream()
@@ -86,8 +92,10 @@ public class DataCrawStats implements DataCraw {
 
     public List<C3Area> countytr(String url) {
         try {
+            Thread.sleep(sleep);
             return Jsoup.connect(url)
                     .userAgent(ua)
+                    .timeout(timeout)
                     .get()
                     .select(".countytr")
                     .stream()
@@ -122,8 +130,10 @@ public class DataCrawStats implements DataCraw {
 
     public List<C3Area> towntr(String url) {
         try {
+            Thread.sleep(sleep);
             return Jsoup.connect(url)
                     .userAgent(ua)
+                    .timeout(timeout)
                     .get()
                     .select(".towntr")
                     .stream()
@@ -159,8 +169,10 @@ public class DataCrawStats implements DataCraw {
 
     public List<C3Area> villagetr(String url) {
         try {
+            Thread.sleep(sleep);
             return Jsoup.connect(url)
                     .userAgent(ua)
+                    .timeout(timeout)
                     .get()
                     .select(".villagetr")
                     .stream()
@@ -197,6 +209,4 @@ public class DataCrawStats implements DataCraw {
             throw new RuntimeException(e);
         }
     }
-
-
 }
