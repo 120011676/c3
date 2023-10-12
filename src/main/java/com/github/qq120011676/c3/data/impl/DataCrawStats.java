@@ -22,10 +22,10 @@ public class DataCrawStats implements DataCraw {
     }
 
     public List<C3Area> parse() {
-        return provincetr("http://www.stats.gov.cn/sj/tjbz/tjyqhdmhcxhfdm/2023/index.html");
+        return provincetr("http://www.stats.gov.cn/sj/tjbz/tjyqhdmhcxhfdm/2023/index.html", null);
     }
 
-    public List<C3Area> provincetr(String url) {
+    public List<C3Area> provincetr(String url, Integer retryCount) {
         try {
             Thread.sleep(sleep);
             return Jsoup.connect(url)
@@ -42,17 +42,22 @@ public class DataCrawStats implements DataCraw {
                         C3Area c3Area = new C3Area();
                         c3Area.setCode(MessageFormat.format("{0}0000000000", code));
                         c3Area.setName(name);
-                        c3Area.setChilds(citytr(absUrl));
+                        c3Area.setChilds(citytr(absUrl, null));
                         return c3Area;
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            retryCount = Optional.ofNullable(retryCount).orElse(0);
+            if (retryCount <= 2) {
+                return provincetr(url, retryCount + 1);
+            }
+            System.out.println(url);
             System.out.println(url);
             throw new RuntimeException(e);
         }
     }
 
-    public List<C3Area> citytr(String url) {
+    public List<C3Area> citytr(String url, Integer retryCount) {
         try {
             Thread.sleep(sleep);
             return Jsoup.connect(url)
@@ -80,17 +85,21 @@ public class DataCrawStats implements DataCraw {
                                 .map(v -> v.get(0))
                                 .map(v -> v.absUrl("href"))
                                 .filter(v -> !v.isBlank())
-                                .ifPresent(v -> c3Area.setChilds(countytr(v)));
+                                .ifPresent(v -> c3Area.setChilds(countytr(v, null)));
                         return c3Area;
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            retryCount = Optional.ofNullable(retryCount).orElse(0);
+            if (retryCount <= 2) {
+                return citytr(url, retryCount + 1);
+            }
             System.out.println(url);
             throw new RuntimeException(e);
         }
     }
 
-    public List<C3Area> countytr(String url) {
+    public List<C3Area> countytr(String url, Integer retryCount) {
         try {
             Thread.sleep(sleep);
             return Jsoup.connect(url)
@@ -118,17 +127,22 @@ public class DataCrawStats implements DataCraw {
                                 .map(v -> v.get(0))
                                 .map(v -> v.absUrl("href"))
                                 .filter(v -> !v.isBlank())
-                                .ifPresent(v -> c3Area.setChilds(towntr(v)));
+                                .ifPresent(v -> c3Area.setChilds(towntr(v, null)));
                         return c3Area;
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            retryCount = Optional.ofNullable(retryCount).orElse(0);
+            if (retryCount <= 2) {
+                return countytr(url, retryCount + 1);
+            }
+            System.out.println(url);
             System.out.println(url);
             throw new RuntimeException(e);
         }
     }
 
-    public List<C3Area> towntr(String url) {
+    public List<C3Area> towntr(String url, Integer retryCount) {
         try {
             Thread.sleep(sleep);
             return Jsoup.connect(url)
@@ -156,18 +170,22 @@ public class DataCrawStats implements DataCraw {
                                 .map(v -> v.get(0))
                                 .map(v -> v.absUrl("href"))
                                 .filter(v -> !v.isBlank())
-                                .ifPresent(v -> c3Area.setChilds(villagetr(v)));
+                                .ifPresent(v -> c3Area.setChilds(villagetr(v, null)));
                         return c3Area;
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            retryCount = Optional.ofNullable(retryCount).orElse(0);
+            if (retryCount <= 2) {
+                return towntr(url, retryCount + 1);
+            }
             System.out.println(url);
             throw new RuntimeException(e);
         }
     }
 
 
-    public List<C3Area> villagetr(String url) {
+    public List<C3Area> villagetr(String url, Integer retryCount) {
         try {
             Thread.sleep(sleep);
             return Jsoup.connect(url)
@@ -205,6 +223,10 @@ public class DataCrawStats implements DataCraw {
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            retryCount = Optional.ofNullable(retryCount).orElse(0);
+            if (retryCount <= 2) {
+                return villagetr(url, retryCount + 1);
+            }
             System.out.println(url);
             throw new RuntimeException(e);
         }
