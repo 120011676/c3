@@ -18,15 +18,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class DataCrawStatsNew {
+public class DataCrawStatsNewTest {
     public static void main(String[] args) {
-        DataCrawStatsNew dataCrawStatsNew = new DataCrawStatsNew();
+        DataCrawStatsNewTest dataCrawStatsNew = new DataCrawStatsNewTest();
         dataCrawStatsNew.community();
         System.out.println("完成");
     }
 
     public void p() {
-        DataCrawStatsNew dataCrawStatsNew = new DataCrawStatsNew();
+        DataCrawStatsNewTest dataCrawStatsNew = new DataCrawStatsNewTest();
         List<C3AreaExt> c3Areas = dataCrawStatsNew.provincetr("http://www.stats.gov.cn/sj/tjbz/tjyqhdmhcxhfdm/2023/index.html");
         String json = JSONUtil.toJsonStr(c3Areas);
         String projectPath = System.getProperty("user.dir");
@@ -60,7 +60,7 @@ public class DataCrawStatsNew {
                 },
                 false);
         List<C3AreaExt> list = new ArrayList<>(100000);
-        DataCrawStatsNew dcsn = new DataCrawStatsNew();
+        DataCrawStatsNewTest dcsn = new DataCrawStatsNewTest();
         exts.forEach(o -> {
             list.addAll(dcsn.citytr(o.getUrl()));
         });
@@ -94,7 +94,7 @@ public class DataCrawStatsNew {
                 },
                 false);
         List<C3AreaExt> list = new ArrayList<>(100000);
-        DataCrawStatsNew dcsn = new DataCrawStatsNew();
+        DataCrawStatsNewTest dcsn = new DataCrawStatsNewTest();
         exts.forEach(o -> {
             if (Objects.nonNull(o.getUrl()) && !o.getUrl().isBlank()) {
                 list.addAll(dcsn.countytr(o.getUrl()));
@@ -130,7 +130,7 @@ public class DataCrawStatsNew {
                 },
                 false);
         List<C3AreaExt> list = new ArrayList<>(200000);
-        DataCrawStatsNew dcsn = new DataCrawStatsNew();
+        DataCrawStatsNewTest dcsn = new DataCrawStatsNewTest();
         exts.forEach(o -> {
             if (Objects.nonNull(o.getUrl()) && !o.getUrl().isBlank()) {
                 list.addAll(dcsn.towntr(o.getUrl()));
@@ -157,7 +157,7 @@ public class DataCrawStatsNew {
                         "src",
                         "test",
                         "resources",
-                        "street.json")
+                        "street_tmp.json")
                 .toString();
         FileReader fileReader = new FileReader(filepath);
         String json = fileReader.readString();
@@ -166,29 +166,51 @@ public class DataCrawStatsNew {
                 },
                 false);
         List<C3AreaExt> list = new ArrayList<>(500000);
-        DataCrawStatsNew dcsn = new DataCrawStatsNew();
-        exts.forEach(o -> {
-            if (Objects.nonNull(o.getUrl()) && !o.getUrl().isBlank()) {
-                list.addAll(dcsn.villagetr(o.getUrl()));
+        DataCrawStatsNewTest dcsn = new DataCrawStatsNewTest();
+        try {
+            for (C3AreaExt o : exts) {
+                if (o.getChilds() != null && !exts.isEmpty()) {
+                    list.addAll(o.getChilds());
+                    continue;
+                }
+                List<C3AreaExt> extList = dcsn.villagetr(o.getUrl());
+                list.addAll(extList);
+                o.setChilds(extList);
             }
-        });
-        json = JSONUtil.toJsonStr(list);
-        filepath = Paths.get(projectPath,
-                        "src",
-                        "test",
-                        "resources",
-                        "community.json")
-                .toString();
-        try (FileWriter fileWriter = new FileWriter(filepath)) {
-            fileWriter.write(json);
-            fileWriter.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            json = JSONUtil.toJsonStr(list);
+            filepath = Paths.get(projectPath,
+                            "src",
+                            "test",
+                            "resources",
+                            "community.json")
+                    .toString();
+            try (FileWriter fileWriter = new FileWriter(filepath)) {
+                fileWriter.write(json);
+                fileWriter.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            json = JSONUtil.toJsonStr(exts);
+            filepath = Paths.get(projectPath,
+                            "src",
+                            "test",
+                            "resources",
+                            "street_tmp.json")
+                    .toString();
+            try (FileWriter fileWriter = new FileWriter(filepath)) {
+                fileWriter.write(json);
+                fileWriter.flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
 
-    private final String ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36";
+    private final String ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36";
     private final int sleep = 500;
     private final int timeout = 30000;
 
@@ -338,45 +360,41 @@ public class DataCrawStatsNew {
     }
 
 
-    public List<C3AreaExt> villagetr(String url) {
-        try {
-            return Jsoup.connect(url)
-                    .userAgent(ua)
-                    .timeout(timeout)
-                    .get()
-                    .select(".villagetr")
-                    .stream()
-                    .map(o -> {
-                        Elements elements = o.children();
-                        Element codeElement = elements.get(0);
-                        Element typeElement = elements.get(1);
-                        Element nameElement = elements.get(2);
-                        String code = Optional.of(codeElement)
-                                .map(Element::text)
-                                .orElse(null);
-                        String type = Optional.of(typeElement)
-                                .map(Element::text)
-                                .orElse(null);
-                        String name = Optional.of(nameElement)
-                                .map(Element::text)
-                                .orElse(null);
-                        C3AreaExt c3Area = new C3AreaExt();
-                        c3Area.setCode(code);
-                        c3Area.setType(type);
-                        c3Area.setName(name);
-                        Elements aElements = codeElement.getElementsByTag("a");
-                        Optional.of(aElements)
-                                .filter(v -> !v.isEmpty())
-                                .map(v -> v.get(0))
-                                .map(v -> v.absUrl("href"))
-                                .filter(v -> !v.isBlank())
-                                .ifPresent(System.out::println);
-                        return c3Area;
-                    })
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            System.out.println(url);
-            throw new RuntimeException(e);
-        }
+    public List<C3AreaExt> villagetr(String url) throws IOException, InterruptedException {
+        Thread.sleep(sleep);
+        return Jsoup.connect(url)
+                .userAgent(ua)
+                .timeout(timeout)
+                .get()
+                .select(".villagetr")
+                .stream()
+                .map(o -> {
+                    Elements elements = o.children();
+                    Element codeElement = elements.get(0);
+                    Element typeElement = elements.get(1);
+                    Element nameElement = elements.get(2);
+                    String code = Optional.of(codeElement)
+                            .map(Element::text)
+                            .orElse(null);
+                    String type = Optional.of(typeElement)
+                            .map(Element::text)
+                            .orElse(null);
+                    String name = Optional.of(nameElement)
+                            .map(Element::text)
+                            .orElse(null);
+                    C3AreaExt c3Area = new C3AreaExt();
+                    c3Area.setCode(code);
+                    c3Area.setType(type);
+                    c3Area.setName(name);
+                    Elements aElements = codeElement.getElementsByTag("a");
+                    Optional.of(aElements)
+                            .filter(v -> !v.isEmpty())
+                            .map(v -> v.get(0))
+                            .map(v -> v.absUrl("href"))
+                            .filter(v -> !v.isBlank())
+                            .ifPresent(System.out::println);
+                    return c3Area;
+                })
+                .collect(Collectors.toList());
     }
 }
