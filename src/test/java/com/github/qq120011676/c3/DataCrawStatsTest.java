@@ -20,7 +20,7 @@ public class DataCrawStatsTest {
                         "src",
                         "test",
                         "resources",
-                        "data.json")
+                        "china_province_city_county_street_community.json")
                 .toAbsolutePath()
                 .toString();
         try (FileWriter fileWriter = new FileWriter(filepath)) {
