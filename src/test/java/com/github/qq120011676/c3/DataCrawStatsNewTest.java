@@ -361,9 +361,9 @@ public class DataCrawStatsNewTest {
 
 
     public List<C3AreaExt> villagetr(String url) throws IOException, InterruptedException {
-        Thread.sleep(sleep);
         return Jsoup.connect(url)
                 .userAgent(ua)
+                .header("Cookie", "wzws_sessionid=gWUzZjgxMIAxODIuMTUwLjExNy4xNzmgZSjlRYI3ZWQyZDA=; SF_cookie_1=37059734; wzws_cid=cdddc02ed7da0e3ac0d0f02005648b7a4c9d3b16bc10ccac4656be42731f8fcafb5909a686ea61db9bc8560940d026693d56da75fa2d20a335eddb66ccf51b524860bb4466d10ca342ce82fb7bfa2c98")
                 .timeout(timeout)
                 .get()
                 .select(".villagetr")
